@@ -14,23 +14,30 @@ import bagh_sir as bs   # the exact, validated tool
 
 
 def show_3d_model(V, F):
-    """Draw the uploaded mesh as a rotatable solid 3D model."""
-    Vc = V - V.mean(0)                       # centre it
+    """Draw the uploaded mesh as a rotatable solid 3D model, clearly lit."""
+    Vc = V - V.mean(0)                       # centre on the origin
+
+    # colour each vertex by height so the surface and contours read clearly
+    intensity = Vc[:, 2]
+
     fig = go.Figure(data=[go.Mesh3d(
         x=Vc[:, 0], y=Vc[:, 1], z=Vc[:, 2],
         i=F[:, 0], j=F[:, 1], k=F[:, 2],
-        color="#9aa3ad", flatshading=True,
-        lighting=dict(ambient=0.45, diffuse=0.9, specular=0.25, roughness=0.55),
-        lightposition=dict(x=120, y=180, z=160),
-        hoverinfo="skip", showscale=False)])
+        intensity=intensity, colorscale="Viridis", showscale=False,
+        flatshading=True,
+        lighting=dict(ambient=0.62, diffuse=0.85, specular=0.18,
+                      roughness=0.6, fresnel=0.1),
+        lightposition=dict(x=200, y=200, z=300),
+        hoverinfo="skip")])
+
     fig.update_layout(
-        margin=dict(l=0, r=0, t=0, b=0), height=440,
+        margin=dict(l=0, r=0, t=0, b=0), height=460,
         paper_bgcolor="rgba(0,0,0,0)",
         scene=dict(
             xaxis=dict(visible=False), yaxis=dict(visible=False),
             zaxis=dict(visible=False), aspectmode="data",
-            dragmode="orbit",
-            camera=dict(eye=dict(x=1.5, y=1.5, z=0.9))))
+            dragmode="orbit", bgcolor="rgba(0,0,0,0)",
+            camera=dict(eye=dict(x=1.6, y=1.6, z=0.9))))
     st.plotly_chart(fig, use_container_width=True, config={"displaylogo": False})
 
 st.set_page_config(page_title="BAGH_SIR - Asteroid Volume & Density",
