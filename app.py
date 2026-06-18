@@ -9,7 +9,29 @@ import tempfile
 import numpy as np
 import pandas as pd
 import streamlit as st
+import plotly.graph_objects as go
 import bagh_sir as bs   # the exact, validated tool
+
+
+def show_3d_model(V, F):
+    """Draw the uploaded mesh as a rotatable solid 3D model."""
+    Vc = V - V.mean(0)                       # centre it
+    fig = go.Figure(data=[go.Mesh3d(
+        x=Vc[:, 0], y=Vc[:, 1], z=Vc[:, 2],
+        i=F[:, 0], j=F[:, 1], k=F[:, 2],
+        color="#9aa3ad", flatshading=True,
+        lighting=dict(ambient=0.45, diffuse=0.9, specular=0.25, roughness=0.55),
+        lightposition=dict(x=120, y=180, z=160),
+        hoverinfo="skip", showscale=False)])
+    fig.update_layout(
+        margin=dict(l=0, r=0, t=0, b=0), height=440,
+        paper_bgcolor="rgba(0,0,0,0)",
+        scene=dict(
+            xaxis=dict(visible=False), yaxis=dict(visible=False),
+            zaxis=dict(visible=False), aspectmode="data",
+            dragmode="orbit",
+            camera=dict(eye=dict(x=1.5, y=1.5, z=0.9))))
+    st.plotly_chart(fig, use_container_width=True, config={"displaylogo": False})
 
 st.set_page_config(page_title="BAGH_SIR - Asteroid Volume & Density",
                    page_icon="\U0001FAA8", layout="centered")
@@ -111,6 +133,14 @@ if run:
 
     st.success(f"Done \u2014 {res['n_vert']:,} vertices, {res['n_face']:,} faces. "
                f"Both volume methods agreed.")
+
+    # rotatable solid 3D model of the uploaded shape
+    st.subheader("3D shape")
+    st.caption("Drag to rotate \u00b7 scroll to zoom \u2014 this is the real mesh BAGH_SIR measured.")
+    try:
+        show_3d_model(V, F)
+    except Exception:
+        st.info("Could not render the 3D view for this model, but the numbers below are unaffected.")
 
     # headline metrics (units live in the labels, so values never truncate)
     m1, m2, m3 = st.columns(3)
